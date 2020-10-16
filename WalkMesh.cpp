@@ -43,7 +43,38 @@ WalkMesh::WalkMesh(std::vector< glm::vec3 > const &vertices_, std::vector< glm::
 //project pt to the plane of triangle a,b,c and return the barycentric weights of the projected point:
 glm::vec3 barycentric_weights(glm::vec3 const &a, glm::vec3 const &b, glm::vec3 const &c, glm::vec3 const &pt) {
 	//TODO: implement!
-	return glm::vec3(0.25f, 0.25f, 0.5f);
+	glm::vec3 perp = glm::normalize(glm::cross(b - a, c - a));
+	glm::vec3 displacement = a - pt;
+	float dot = glm::dot(perp, displacement);
+	glm::vec3 new_pt = pt + perp * dot; // The pt projected onto the plane
+	std::cout << "new_pt: " << new_pt.x << ", " << new_pt.y << ", " << new_pt.z << std::endl;
+
+	glm::vec3 edge_ab = b - a;
+	glm::vec3 edge_bc = c - b;
+	glm::vec3 edge_ca = a - c;
+
+	glm::vec3 b_to_newpt = new_pt - b;
+	glm::vec3 c_to_newpt = new_pt - c;
+	glm::vec3 a_to_newpt = new_pt - a;
+
+	// area opposite point a
+	glm::vec3 bc_proj = glm::dot(edge_bc, b_to_newpt) * edge_bc; // new_pt projected onto the bc edge
+	float bc_height = glm::length(b_to_newpt + bc_proj);
+	float bc_area_2 = glm::length(edge_bc) * bc_height; // Area of the b, c, new_pt triangle (times 2)
+
+	// area opposite point b
+	glm::vec3 ca_proj = glm::dot(edge_ca, c_to_newpt) * edge_ca; // new_pt projected onto the ca edge
+	float ca_height = glm::length(c_to_newpt + ca_proj);
+	float ca_area_2 = glm::length(edge_ca) * ca_height; // Area of the c, a, new_pt triangle (times 2)
+
+	// area opposite point c
+	glm::vec3 ab_proj = glm::dot(edge_ab, a_to_newpt) * edge_ab; // new_pt projected onto the ab edge
+	float ab_height = glm::length(a_to_newpt + ab_proj);
+	float ab_area_2 = glm::length(edge_ab) * ab_height; // Area of the a, b, new_pt triangle (times 2)
+
+	// Compute ratios of the areas
+	float area_sum_2 = bc_area_2 + ca_area_2 + ab_area_2;
+	return glm::vec3(bc_area_2 / area_sum_2, ca_area_2 / area_sum_2, ab_area_2 / area_sum_2);
 }
 
 WalkPoint WalkMesh::nearest_walk_point(glm::vec3 const &world_point) const {

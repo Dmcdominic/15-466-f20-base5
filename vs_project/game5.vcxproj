@@ -64,6 +64,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);E:\Coding\CMU\15466\nest-mess;E:\Coding\CMU\15466\nest-mess\freetype\include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -152,6 +153,10 @@
     <ClInclude Include="..\ShowSceneProgram.hpp" />
     <ClInclude Include="..\Sound.hpp" />
     <ClInclude Include="..\WalkMesh.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Jamfile" />
+    <None Include="..\scenes\Makefile.windows" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
