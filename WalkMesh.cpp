@@ -40,41 +40,39 @@ WalkMesh::WalkMesh(std::vector< glm::vec3 > const &vertices_, std::vector< glm::
 	}
 }
 
-//project pt to the plane of triangle a,b,c and return the barycentric weights of the projected point:
+// project pt to the plane of triangle a,b,c and return the barycentric weights of the projected point:
+//   based on my code solution for quiz 7 of 15-462: Computer Graphics (Fall 2019)
+//   https://docs.google.com/document/d/1cDLLhXjUtdrLoG4pRzDNI2_nYBb83lJsk1W3xwbKKpQ/edit
+//   http://15462.courses.cs.cmu.edu/fall2019/article/9
+// Test this code here:
+//   https://15466.courses.cs.cmu.edu/lesson/walkmesh
 glm::vec3 barycentric_weights(glm::vec3 const &a, glm::vec3 const &b, glm::vec3 const &c, glm::vec3 const &pt) {
-	//TODO: implement!
 	glm::vec3 perp = glm::normalize(glm::cross(b - a, c - a));
 	glm::vec3 displacement = a - pt;
 	float dot = glm::dot(perp, displacement);
-	glm::vec3 new_pt = pt + perp * dot; // The pt projected onto the plane
-	std::cout << "new_pt: " << new_pt.x << ", " << new_pt.y << ", " << new_pt.z << std::endl;
+	glm::vec3 new_pt = pt + perp * dot; // The pt projected onto the triangle's plane
 
-	glm::vec3 edge_ab = b - a;
-	glm::vec3 edge_bc = c - b;
-	glm::vec3 edge_ca = a - c;
+	// area opposite point a (times 2)
+	glm::vec3 newpt_cross_cb = glm::cross(c - new_pt, new_pt - b);
+	glm::vec3 a_cross_cb = glm::cross(c - a, a - b);
+	float area_a_2 = glm::length(newpt_cross_cb);
+	if (glm::dot(newpt_cross_cb, a_cross_cb) < 0) area_a_2 = -area_a_2;
 
-	glm::vec3 b_to_newpt = new_pt - b;
-	glm::vec3 c_to_newpt = new_pt - c;
-	glm::vec3 a_to_newpt = new_pt - a;
+	// area opposite point b (times 2)
+	glm::vec3 newpt_cross_ac = glm::cross(a - new_pt, new_pt - c);
+	glm::vec3 b_cross_ac = glm::cross(a - b, b - c);
+	float area_b_2 = glm::length(newpt_cross_ac);
+	if (glm::dot(newpt_cross_ac, b_cross_ac) < 0) area_b_2 = -area_b_2;
 
-	// area opposite point a
-	glm::vec3 bc_proj = glm::dot(edge_bc, b_to_newpt) * edge_bc; // new_pt projected onto the bc edge
-	float bc_height = glm::length(b_to_newpt + bc_proj);
-	float bc_area_2 = glm::length(edge_bc) * bc_height; // Area of the b, c, new_pt triangle (times 2)
-
-	// area opposite point b
-	glm::vec3 ca_proj = glm::dot(edge_ca, c_to_newpt) * edge_ca; // new_pt projected onto the ca edge
-	float ca_height = glm::length(c_to_newpt + ca_proj);
-	float ca_area_2 = glm::length(edge_ca) * ca_height; // Area of the c, a, new_pt triangle (times 2)
-
-	// area opposite point c
-	glm::vec3 ab_proj = glm::dot(edge_ab, a_to_newpt) * edge_ab; // new_pt projected onto the ab edge
-	float ab_height = glm::length(a_to_newpt + ab_proj);
-	float ab_area_2 = glm::length(edge_ab) * ab_height; // Area of the a, b, new_pt triangle (times 2)
+	// area opposite point c (times 2)
+	glm::vec3 newpt_cross_ba = glm::cross(b - new_pt, new_pt - a);
+	glm::vec3 c_cross_ba = glm::cross(b - c, c - a);
+	float area_c_2 = glm::length(newpt_cross_ba);
+	if (glm::dot(newpt_cross_ba, c_cross_ba) < 0) area_c_2 = -area_c_2;
 
 	// Compute ratios of the areas
-	float area_sum_2 = bc_area_2 + ca_area_2 + ab_area_2;
-	return glm::vec3(bc_area_2 / area_sum_2, ca_area_2 / area_sum_2, ab_area_2 / area_sum_2);
+	float area_sum_2 = area_a_2 + area_b_2 + area_c_2;
+	return glm::vec3(area_a_2 / area_sum_2, area_b_2 / area_sum_2, area_c_2 / area_sum_2);
 }
 
 WalkPoint WalkMesh::nearest_walk_point(glm::vec3 const &world_point) const {
