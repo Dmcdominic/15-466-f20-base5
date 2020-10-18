@@ -4,6 +4,7 @@
 
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -168,31 +169,34 @@ void WalkMesh::walk_in_triangle(WalkPoint const &start, glm::vec3 const &step, W
 }
 
 bool WalkMesh::cross_edge(WalkPoint const &start, WalkPoint *end_, glm::quat *rotation_) const {
+	assert(start.weights.z == 0.0f);
+	assert(start.indices.x <= vertices.size() && start.indices.y <= vertices.size() && start.indices.z <= vertices.size());
+
 	assert(end_);
 	auto &end = *end_;
 
 	assert(rotation_);
 	auto &rotation = *rotation_;
 
-	assert(start.weights.z == 0.0f); //*must* be on an edge.
-	glm::uvec2 edge = glm::uvec2(start.indices);
-
-	//check if 'edge' is a non-boundary edge:
-	if (edge.x == edge.y /* <-- TODO: use a real check, this is just here so code compiles */) {
-		//it is!
-
-		//make 'end' represent the same (world) point, but on triangle (edge.y, edge.x, [other point]):
-		//TODO
-
-		//make 'rotation' the rotation that takes (start.indices)'s normal to (end.indices)'s normal:
-		//TODO
-
-		return true;
-	} else {
-		end = start;
-		rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+	// check if edge (start.indices.x, start.indices.y) has a triangle on the other side:
+	end = start;
+	auto f = next_vertex.find(glm::uvec2(start.indices.y, start.indices.x));
+	if (f == next_vertex.end()) {
+		rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f); //identity quat (wxyz init order)
 		return false;
 	}
+	// if there is another triangle, set end's weights and indicies on that triangle:
+	end.indices = glm::uvec3(start.indices.y, start.indices.x, f->second);
+	end.weights = glm::vec3(start.weights.y, start.weights.x, 0.0f);
+
+	// compute rotation that takes starting triangle's normal to ending triangle's normal:
+	// see 'glm::rotation' in the glm/gtx/quaternion.hpp header (line 160)
+	glm::vec3 orig = glm::normalize(glm::cross(vertices[start.indices.y] - vertices[start.indices.x], vertices[start.indices.z] - vertices[start.indices.y]));
+	glm::vec3 dest = glm::normalize(glm::cross(vertices[end.indices.y] - vertices[end.indices.x], vertices[end.indices.z] - vertices[end.indices.y]));
+	rotation = glm::rotation(orig, dest);
+
+	//return 'true' if there was another triangle, 'false' otherwise:
+	return true;
 }
 
 
