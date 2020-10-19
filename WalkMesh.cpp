@@ -146,24 +146,56 @@ WalkPoint WalkMesh::nearest_walk_point(glm::vec3 const &world_point) const {
 void WalkMesh::walk_in_triangle(WalkPoint const &start, glm::vec3 const &step, WalkPoint *end_, float *time_) const {
 	assert(end_);
 	auto &end = *end_;
-
 	assert(time_);
 	auto &time = *time_;
 
-	glm::vec3 step_coords;
-	{ //project 'step' into a barycentric-coordinates direction:
-		//TODO
-		step_coords = glm::vec3(0.0f);
-	}
-	
 	//if no edge is crossed, event will just be taking the whole step:
 	time = 1.0f;
 	end = start;
 
+	//project 'step' into a barycentric-coordinates direction:
+	glm::vec3 step_weights;
+	{ 
+		glm::vec3 const& a = vertices[start.indices.x];
+		glm::vec3 const& b = vertices[start.indices.y];
+		glm::vec3 const& c = vertices[start.indices.z];
+		/*glm::vec3 normal = glm::normalize(glm::cross(b - a, c - a));
+		float dot = glm::dot(step, normal);
+		step_coords = step - dot * normal;*/
+
+		glm::vec3 start_wrld_pt = WalkMesh::to_world_point(start);
+		glm::vec3 end_wrld_pt = start_wrld_pt + step;
+		end.weights = barycentric_weights(a, b, c, end_wrld_pt);
+
+		step_weights = end.weights - start.weights;
+	}
+	
 	//figure out which edge (if any) is crossed first.
 	// set time and end appropriately.
-	//TODO
+	float t_x_0 = (step_weights.x == 0) ? (-1.0f) : (-start.weights.x / step_weights.x);
+	float t_y_0 = (step_weights.y == 0) ? (-1.0f) : (-start.weights.y / step_weights.y);
+	float t_z_0 = (step_weights.z == 0) ? (-1.0f) : (-start.weights.z / step_weights.z);
+	float t_min = 1.0f;
+	if (t_x_0 > 0.0f && t_x_0 < t_min) t_min = t_x_0;
+	if (t_y_0 > 0.0f && t_y_0 < t_min) t_min = t_y_0;
+	if (t_z_0 > 0.0f && t_z_0 < t_min) t_min = t_z_0;
 
+	if (t_min < 1.0f && t_min > 0.0f) {
+		time = t_min;
+		end.weights = start.weights + step_weights * t_min;
+		if (t_x_0 == t_min) {
+			end.indices = glm::uvec3(end.indices.y, end.indices.z, end.indices.x);
+			float weight_sum = end.weights.y + end.weights.z;
+			end.weights = glm::vec3(end.weights.y / weight_sum, end.weights.z / weight_sum, 0.0f);
+		} else if (t_y_0 == t_min) {
+			end.indices = glm::uvec3(end.indices.z, end.indices.x, end.indices.y);
+			float weight_sum = end.weights.z + end.weights.x;
+			end.weights = glm::vec3(end.weights.z / weight_sum, end.weights.x / weight_sum, 0.0f);
+		} else if (t_z_0 == t_min) {
+			float weight_sum = end.weights.x + end.weights.y;
+			end.weights = glm::vec3(end.weights.x / weight_sum, end.weights.y / weight_sum, 0.0f);
+		}
+	}
 	//Remember: our convention is that when a WalkPoint is on an edge,
 	// then wp.weights.z == 0.0f (so will likely need to re-order the indices)
 }
