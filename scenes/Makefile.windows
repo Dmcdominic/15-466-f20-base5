@@ -1,10 +1,11 @@
 
-BLENDER="C:\Program Files\Blender Foundation\Blender 2.90\blender.exe"
+BLENDER="E:\Program Files\Blender Foundation\Blender 2.90\blender.exe"
 DIST=../dist
 
 all : \
     $(DIST)/phone-bank.pnct \
     $(DIST)/phone-bank.scene \
+    $(DIST)/phone-bank.w \
 
 $(DIST)/phone-bank.scene : phone-bank.blend export-scene.py
     $(BLENDER) --background --python export-scene.py -- "phone-bank.blend:Platforms" "$(DIST)/phone-bank.scene"

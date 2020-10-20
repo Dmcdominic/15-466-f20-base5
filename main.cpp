@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
 
 	//create window:
 	SDL_Window *window = SDL_CreateWindow(
-		"gp20 game5: walking simulator", //TODO: remember to set a title for your game!
+		"Crossed Paths",
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 		1280, 720, //TODO: modify window size if you'd like
 		SDL_WINDOW_OPENGL
@@ -153,6 +153,7 @@ int main(int argc, char **argv) {
 				}
 			}
 			if (!Mode::current) break;
+			if (Mode::current->quit) break;
 		}
 
 		{ //(2) call the current mode's "update" function to deal with elapsed time:
@@ -167,6 +168,7 @@ int main(int argc, char **argv) {
 
 			Mode::current->update(elapsed);
 			if (!Mode::current) break;
+			if (Mode::current->quit) break;
 		}
 
 		{ //(3) call the current mode's "draw" function to produce output:

@@ -24,5 +24,8 @@ struct Mode : std::enable_shared_from_this< Mode > {
 	// use 'set_current' to change the current Mode (e.g., to switch to a menu)
 	static std::shared_ptr< Mode > current;
 	static void set_current(std::shared_ptr< Mode > const &);
+
+	//Set this bool to quit if you want the main loop to quit after this frame.
+	bool quit = false;
 };
 
