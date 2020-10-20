@@ -4,9 +4,11 @@ Author: Dominic Calkosz
 
 Design: Discover the nature of these two crossed paths and break free.
 
+
 Screen Shot:
 
 ![Screen Shot](screenshot.png)
+
 
 How To Play:
 
@@ -15,6 +17,7 @@ How To Play:
 * E to interact.
 * escape to ungrab the mouse.
 * Q to quit.
+
 
 Sources: Original phone-bank.blend by Jim McCann was used as a template. Other models were haphazardly created by me.
 
